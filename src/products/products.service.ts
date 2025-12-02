@@ -8,6 +8,7 @@ import { envs } from 'src/config';
 @Injectable()
 export class ProductsService extends PrismaClient implements OnModuleInit {
   private readonly logger = new Logger('ProductsService');
+
   constructor() {
     const adapter = new PrismaBetterSqlite3({ url: envs.databaseUrl });
     super({ adapter });
@@ -19,7 +20,9 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
   }
 
   create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
+    return this.product.create({
+      data: createProductDto,
+    });
   }
 
   findAll() {

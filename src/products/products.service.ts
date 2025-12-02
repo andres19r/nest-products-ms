@@ -1,9 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { PrismaClient } from 'generated/prisma/client';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import { envs } from 'src/config';
 
 @Injectable()
-export class ProductsService {
+export class ProductsService extends PrismaClient implements OnModuleInit {
+  private readonly logger = new Logger('ProductsService');
+  constructor() {
+    const adapter = new PrismaBetterSqlite3({ url: envs.databaseUrl });
+    super({ adapter });
+  }
+
+  onModuleInit() {
+    this.$connect();
+    this.logger.log('Database connected');
+  }
+
   create(createProductDto: CreateProductDto) {
     return 'This action adds a new product';
   }

@@ -1,4 +1,10 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaClient } from 'generated/prisma/client';
@@ -45,15 +51,28 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
     };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: number) {
+    const product = await this.product.findUnique({ where: { id } });
+
+    if (!product)
+      throw new NotFoundException(`Product with id ${id} not found`);
+
+    return product;
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: number, updateProductDto: UpdateProductDto) {
+    if (!updateProductDto) throw new BadRequestException('Data is missing');
+
+    await this.findOne(id);
+    return this.product.update({
+      where: { id },
+      data: updateProductDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: number) {
+    await this.findOne(id);
+
+    return this.product.delete({ where: { id } });
   }
 }

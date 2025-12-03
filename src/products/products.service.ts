@@ -4,6 +4,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaClient } from 'generated/prisma/client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { envs } from 'src/config';
+import { PaginationDto } from 'src/common';
 
 @Injectable()
 export class ProductsService extends PrismaClient implements OnModuleInit {
@@ -25,8 +26,23 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
     });
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll(paginationDto: PaginationDto) {
+    const { page, limit } = paginationDto;
+
+    const totalItems = await this.product.count();
+    const lastPage = Math.ceil(totalItems / limit!);
+
+    return {
+      meta: {
+        page,
+        total: totalItems,
+        lastPage,
+      },
+      data: await this.product.findMany({
+        skip: (page! - 1) * limit!,
+        take: limit,
+      }),
+    };
   }
 
   findOne(id: number) {
